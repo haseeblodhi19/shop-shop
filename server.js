@@ -185,6 +185,25 @@ function setSessionCookie(response, token, maxAge) {
   response.setHeader('Set-Cookie', `shop_session=${encodeURIComponent(token)}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Lax`);
 }
 
+function hashPassword(password) {
+  if (typeof password !== 'string') throw new TypeError('Password must be a string.');
+  const salt = crypto.randomBytes(16);
+  const hash = crypto.scryptSync(password, salt, 64);
+  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+}
+
+function isPasswordHash(value) {
+  return typeof value === 'string' && /^scrypt\$[a-f0-9]{32}\$[a-f0-9]{128}$/i.test(value);
+}
+
+function verifyPassword(password, storedValue) {
+  if (typeof password !== 'string' || !isPasswordHash(storedValue)) return false;
+  const [, saltHex, hashHex] = storedValue.split('$');
+  const expected = Buffer.from(hashHex, 'hex');
+  const actual = crypto.scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length);
+  return crypto.timingSafeEqual(actual, expected);
+}
+
 function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS app_settings (
@@ -597,6 +616,13 @@ function initDatabase() {
 }
 
 initDatabase();
+db.transaction(() => {
+  const users = db.prepare('SELECT id, password FROM users WHERE password IS NOT NULL').all();
+  const updatePassword = db.prepare('UPDATE users SET password = ? WHERE id = ?');
+  for (const user of users) {
+    if (!isPasswordHash(user.password)) updatePassword.run(hashPassword(String(user.password)), user.id);
+  }
+})();
 db.exec(`INSERT OR IGNORE INTO app_settings (id) VALUES ('default')`);
 
 app.use(express.json({ limit: '20mb' }));
@@ -680,7 +706,7 @@ app.post('/api/setup', (req, res) => {
   const createFirstAdmin = db.transaction(() => {
     if (db.prepare('SELECT 1 FROM users LIMIT 1').get()) return false;
     db.prepare('INSERT INTO users (id, username, password, name, role) VALUES (?, ?, ?, ?, ?)')
-      .run(uuidv4(), username, password, name, 'super_admin');
+      .run(uuidv4(), username, hashPassword(password), name, 'super_admin');
     return true;
   });
 
@@ -692,9 +718,11 @@ app.post('/api/setup', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
-  const user = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?').get(username, password);
+  const user = typeof username === 'string' && typeof password === 'string'
+    ? db.prepare('SELECT * FROM users WHERE username = ?').get(username)
+    : null;
 
-  if (!user) {
+  if (!user || !verifyPassword(password, user.password)) {
     return res.status(401).json({ ok: false, message: 'Invalid username or password' });
   }
 
@@ -2290,8 +2318,9 @@ app.post('/api/users', (req, res) => {
   if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ ok:false, message:'Admin access required' });
   const payload = req.body || {};
   if (!payload.username || !payload.password) return res.status(400).json({ ok: false, message: 'Username and password are required' });
+  if (typeof payload.password !== 'string') return res.status(400).json({ ok: false, message: 'Password must be text' });
   try {
-    const user = { id: uuidv4(), username: payload.username.trim(), password: payload.password, name: payload.name || payload.username, role: payload.role || 'cashier', partner_id: payload.partner_id || null };
+    const user = { id: uuidv4(), username: payload.username.trim(), password: hashPassword(payload.password), name: payload.name || payload.username, role: payload.role || 'cashier', partner_id: payload.partner_id || null };
     db.prepare('INSERT INTO users (id, username, password, name, role, partner_id) VALUES (?, ?, ?, ?, ?, ?)').run(user.id, user.username, user.password, user.name, user.role, user.partner_id);
     res.status(201).json({ ok: true, user: { id: user.id, username: user.username, name: user.name, role: user.role } });
   } catch (error) {
@@ -2304,8 +2333,10 @@ app.put('/api/users/:id', (req, res) => {
   const payload = req.body || {};
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ ok: false, message: 'User not found' });
+  if (payload.password && typeof payload.password !== 'string') return res.status(400).json({ ok: false, message: 'Password must be text' });
+  const passwordHash = payload.password ? hashPassword(payload.password) : '';
   db.prepare('UPDATE users SET name = ?, role = ?, password = CASE WHEN ? <> \'\' THEN ? ELSE password END WHERE id = ?')
-    .run(payload.name || user.name, payload.role || user.role, payload.password || '', payload.password || '', user.id);
+    .run(payload.name || user.name, payload.role || user.role, passwordHash, passwordHash, user.id);
   res.json({ ok: true });
 });
 

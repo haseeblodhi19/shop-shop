@@ -38,7 +38,7 @@ On Windows, normal app data is stored outside the installation folder in `%Progr
 
 Before updating a customer's installation, make a separate backup of their database. Installing a new app version should not replace the database.
 
-On a fresh database, the app asks you to create the first administrator account; there is no shared default login. Existing databases keep their existing users and passwords. If upgrading from an older build, change any old default password in the Users & Passwords section.
+On a fresh database, the app asks you to create the first administrator account; there is no shared default login. Passwords are stored as salted scrypt hashes. Existing databases keep their user accounts and passwords; older plaintext passwords are converted on startup without changing the login password. Backups made by older builds may still contain plaintext passwords, so keep them protected.
 
 ## Sharing with a customer
 
