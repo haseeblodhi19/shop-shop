@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop Management & POS</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="loginScreen" class="screen active">
+        <div class="login-visual" aria-hidden="true">
+          <canvas id="loginParticles"></canvas>
+          <div class="visual-grid"></div>
+          <div class="visual-copy">
+            <div class="brand-mark">SD</div>
+            <span class="eyebrow">ST DISTRIPRO / OPERATIONS</span>
+            <h1>Run the shop<br /><em>with clarity.</em></h1>
+            <p>Inventory, billing and khata in one calm command centre.</p>
+            <div class="visual-metrics"><span><strong>24/7</strong><small>local control</small></span><span><strong>LIVE</strong><small>stock visibility</small></span><span><strong>ONE</strong><small>source of truth</small></span></div>
+          </div>
+        </div>
+        <div class="login-panel">
+          <div class="login-card">
+            <div class="brand-block">
+              <span class="login-kicker" id="loginKicker">WELCOME BACK</span>
+              <h2 id="loginTitle">Sign in to ShopFlow</h2>
+              <p id="loginSubtitle">Your shop floor is ready.</p>
+            </div>
+            <form id="loginForm">
+            <div class="input-group">
+              <span class="field-icon">@</span>
+              <input type="text" id="username" placeholder=" " autocomplete="username" required />
+              <label for="username">Username</label>
+            </div>
+            <div class="input-group">
+              <span class="field-icon">*</span>
+              <input type="password" id="password" placeholder=" " autocomplete="current-password" required />
+              <label for="password">Password</label>
+            </div>
+            <div class="login-options"><label><input type="checkbox" id="rememberMe" /> Keep me signed in</label><span>Local workspace</span></div>
+            <button type="submit" class="primary-btn login-submit"><span class="btn-text">Enter workspace</span></button>
+            </form>
+            <form id="setupForm" class="hidden" autocomplete="on">
+              <div class="input-group">
+                <span class="field-icon">N</span>
+                <input type="text" id="setupName" placeholder=" " autocomplete="name" maxlength="100" required />
+                <label for="setupName">Your name</label>
+              </div>
+              <div class="input-group">
+                <span class="field-icon">@</span>
+                <input type="text" id="setupUsername" placeholder=" " autocomplete="username" minlength="3" maxlength="50" required />
+                <label for="setupUsername">Admin username</label>
+              </div>
+              <div class="input-group">
+                <span class="field-icon">*</span>
+                <input type="password" id="setupPassword" placeholder=" " autocomplete="new-password" minlength="8" maxlength="128" required />
+                <label for="setupPassword">Password (at least 8 characters)</label>
+              </div>
+              <button type="submit" class="primary-btn login-submit"><span class="btn-text">Create admin account</span></button>
+            </form>
+            <div class="login-foot"><span class="status-dot"></span> Secure local session <span class="foot-separator">|</span> v1.0</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mainApp" class="hidden">
+        <aside class="sidebar" id="sidebar">
+          <div class="brand">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+            <h2>ShopFlow</h2>
+          </div>
+          <nav>
+            <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+            <button class="nav-btn" data-section="pos">POS Billing</button>
+            <button class="nav-btn" data-section="stock">Stock In</button>
+            <button class="nav-btn" data-section="products">Products</button>
+            <button class="nav-btn" data-section="purchases">Purchases</button>
+            <button class="nav-btn" data-section="customers">Customers</button>
+            <button class="nav-btn" data-section="suppliers">Suppliers</button>
+            <button class="nav-btn" data-section="partners">Partners</button>
+            <button class="nav-btn" data-section="expenses">Expenses</button>
+            <button class="nav-btn" data-section="bank">Cash in Bank</button>
+            <button class="nav-btn" data-section="hisab">Hisab Kitab</button>
+            <button class="nav-btn" data-section="reports">Reports</button>
+            <button class="nav-btn" data-section="accounts">Daily Accounts</button>
+            <button class="nav-btn" data-section="users">Users</button>
+            <button class="nav-btn" data-section="settings">Settings</button>
+            <button class="nav-btn" id="logoutBtn">Logout</button>
+          </nav>
+        </aside>
+
+        <main class="main-panel">
+          <header class="topbar">
+            <div class="topbar-left">
+              <button class="back-btn" id="backButton" aria-label="Back to dashboard">←</button>
+              <h3 id="welcomeTitle">Welcome</h3>
+            </div>
+            <div class="topbar-actions">
+              <input id="globalSearch" type="search" placeholder="Search products, customers, invoices..." />
+              <button class="ghost-btn" id="themeToggle">Dark</button>
+              <span id="userBadge" class="badge"></span>
+            </div>
+          </header>
+
+          <section id="dashboardSection" class="content-section active">
+            <div class="live-strip"><span class="live-dot"></span><strong>LIVE CONTROL CENTER</strong><span id="lastSyncText">Syncing...</span></div>
+            <div class="stats-grid" id="dashboardStats"></div>
+            <div class="chart-grid">
+              <div class="panel">
+                <h4>Daily Sales</h4>
+                <div id="dailySalesChart" class="mini-chart"></div>
+              </div>
+              <div class="panel">
+                <h4>Monthly Sales</h4>
+                <div id="monthlySalesChart" class="mini-chart"></div>
+              </div>
+              <div class="panel">
+                <h4>Profit Trend (7 din)</h4>
+                <div id="profitChart" class="mini-chart"></div>
+              </div>
+              <div class="panel">
+                <h4>Retail vs Wholesale</h4>
+                <div id="retailChart" class="mini-chart"></div>
+                <div id="wholesaleChart" class="mini-chart" style="margin-top:6px"></div>
+              </div>
+              <div class="panel">
+                <h4>Expenses by Category</h4>
+                <div id="expensesChart" class="mini-chart"></div>
+              </div>
+              <div class="panel">
+                <h4>Purchase Trend (7 din)</h4>
+                <div id="purchaseChart" class="mini-chart"></div>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="panel alert-panel">
+                <div class="section-head"><h4>⚠ Low Stock Alerts</h4><span class="alert-badge" id="lowStockCount">0</span></div>
+                <table>
+                  <thead>
+                    <tr><th>Product</th><th>Stock</th><th>Min</th></tr>
+                  </thead>
+                  <tbody id="lowStockTable"></tbody>
+                </table>
+              </div>
+              <div class="panel alert-panel">
+                <div class="section-head"><h4>⏳ Expiry Alerts</h4><span class="alert-badge warning" id="expiryCount">0</span></div>
+                <table><thead><tr><th>Product</th><th>Expiry</th><th>Days</th></tr></thead><tbody id="expiryTable"></tbody></table>
+              </div>
+              <div class="panel">
+                <h4>Recent Invoices</h4>
+                <table>
+                  <thead>
+                    <tr><th>Invoice</th><th>Type</th><th>Total</th></tr>
+                  </thead>
+                  <tbody id="recentSalesTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="posSection" class="content-section pos-simple">
+            <div class="pos-layout">
+              <div class="panel pos-panel">
+                <div class="pos-head"><h3>POS Billing</h3><button type="button" class="ghost-btn" id="posDetailToggle">Detail dikhao</button></div>
+                <div class="form-grid compact">
+                  <div>
+                    <label>Billing Type</label>
+                    <select id="saleTypeSelect">
+                      <option value="retail">Retail</option>
+                      <option value="wholesale">Wholesale</option>
+                    </select>
+                  </div>
+                  <div id="wholesaleLevelWrap" class="hidden">
+                    <label>Wholesale Level</label>
+                    <select id="wholesaleLevelSelect">
+                      <option value="0">Standard Wholesale</option>
+                      <option value="1">Level 1</option>
+                      <option value="2">Level 2</option>
+                      <option value="3">Level 3</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Customer</label>
+                    <select id="customerSelect"></select>
+                  </div>
+                  <div>
+                    <label>Payment</label>
+                    <select id="paymentMethodSelect">
+                      <option>Cash</option>
+                      <option>Bank</option>
+                      <option>Online</option>
+                      <option>Credit</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Paid Amount</label>
+                    <input type="number" id="paidAmountInput" value="0" />
+                  </div>
+                </div>
+
+                <div class="pos-tools pos-quick-tools">
+                  <input id="posBarcode" type="text" placeholder="Scan barcode / press Enter..." />
+                  <input id="posProductSearch" type="search" placeholder="Find product..." />
+                  <select id="posCategoryFilter"><option value="">All categories</option></select>
+                  <select id="productSelect"></select>
+                  <select id="posArticleSelect"><option value="">Choose package / article</option></select>
+                  <select id="posSaleMode"><option value="quantity">Quantity sale</option><option value="amount">Amount sale</option></select>
+                  <input type="number" id="posQty" value="1" min="1" />
+                  <input type="number" id="posAmount" value="0" min="0.01" step="0.01" placeholder="Rs amount" />
+                  <button class="primary-btn" id="addPosItemBtn">Add Item</button>
+                </div>
+
+                <div class="invoice-table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Product / Article</th><th>Qty</th><th>Sell as</th><th>Rate</th><th>Cost</th><th>Profit</th><th>Disc %</th><th>Disc Rs</th><th>No Receipt</th><th>Total</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="posItemsBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="panel calc-panel sticky-bill">
+                <div class="bill-status"><span>LIVE INVOICE</span><span id="billBalanceBadge">Balance: Rs.0</span></div>
+                <h3>Bill Summary</h3>
+                <div class="totals-box">
+                  <div class="total-row"><span>Total Sale</span><strong id="totalSaleValue">0</strong></div>
+                  <div class="total-row"><span>Total Cost</span><strong id="totalCostValue">0</strong></div>
+                  <div class="total-row profit"><span>Gross Profit</span><strong id="grossProfitValue">0</strong></div>
+                  <div class="total-row"><span>Profit Margin</span><strong id="profitMarginValue">0%</strong></div>
+                </div>
+                <div class="invoice-actions">
+                  <button class="ghost-btn" type="button" id="autoPrintToggle" aria-pressed="false">Auto Print: Off</button>
+                  <button class="success-btn" id="saveSaleBtn">Save Invoice</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="productsSection" class="content-section">
+            <div class="panel">
+              <div class="advanced-box" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <span>Atta, Ghee aur Blade ke products (bori, loose, card, dhabi) ek click mein banao</span>
+                <button type="button" class="primary-btn" id="seedShopProductsBtn">Dukaan ke products banao</button>
+              </div>
+              <div class="section-head product-section-head">
+                <div>
+                  <span class="eyebrow">INVENTORY MASTER</span>
+                  <h3>Products</h3>
+                  <p class="muted-copy">Create a product once, then manage unlimited items with fast search, stock and bulk tools.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="ghost-btn" id="importProductsBtn" type="button">Import Products CSV</button>
+                  <input id="importProductsInput" type="file" accept=".csv,text/csv" hidden />
+                  <button class="ghost-btn" id="importPackagingBtn" type="button">Import Packaging CSV</button>
+                  <input id="importPackagingInput" type="file" accept=".csv,text/csv" hidden />
+                  <button class="ghost-btn" id="exportProductsBtn" type="button">Export CSV</button>
+                  <button class="ghost-btn" id="exportProductsPdfBtn" type="button">Export PDF</button>
+                  <button class="ghost-btn" id="exportProductsExcelBtn" type="button">Export Excel</button>
+                  <button class="ghost-btn" id="genBarcodesBtn" type="button">Generate Missing Barcodes</button>
+                  <button class="ghost-btn" id="printLabelsBtn" type="button">Print Barcode Labels</button>
+                  <button class="primary-btn openAddProductBtn" data-form="productForm">+ Add Product</button>
+                </div>
+              </div>
+              <div id="productModal" class="modal-overlay hidden">
+                <div class="modal-card">
+                  <div class="modal-head">
+                    <div><span class="eyebrow">INVENTORY MASTER</span><h2 id="productModalTitle">Add Product</h2></div>
+                    <button class="ghost-btn icon-btn" id="closeProductModalBtn" type="button">✕</button>
+                  </div>
+                  <div class="help-callout">
+                    <strong>Tareeqa:</strong> Pehle product ka naam aur Base Unit bharein (jaise Aata = KG, Blade = PCS — ye hamesha sab se chhoti unit honi chahiye).
+                    Phir neeche "Articles / Pack Sizes" mein wo har tareeqa likhein jis se ye cheez bikti hai (bag/dabbi/carton/piece), aur "Base units" mein bata dein ke 1 article kitne base-unit ke barabar hai.
+                    Misaal: Aata ka Base Unit = KG, to "50 KG Bag" article ka Base units = <strong>50</strong>.
+                  </div>
+                  <form id="productForm" class="data-form product-modern-form">
+                    <div class="form-grid">
+                      <div class="field-wide"><label>Product Name *</label><input name="name" required placeholder="e.g. Aata, Sugar, Ghee" /></div>
+                      <div><label>Category *</label><input name="category" required placeholder="Grocery" /></div>
+                      <div><label>Base Unit *</label><select name="unit"><option value="kg">KG</option><option value="pcs">PCS</option><option value="ltr">LTR</option><option value="meter">METER</option></select></div>
+                      <div><label>Brand</label><input name="brand" placeholder="Optional" /></div>
+                      <div><label>Barcode</label><input name="barcode" placeholder="Optional / scan" /></div>
+                      <div><label>Purchase Price *</label><input name="purchase_price" type="number" min="0" step="0.01" required /></div>
+                      <div><label>Retail Price *</label><input name="retail_price" type="number" min="0" step="0.01" required /></div>
+                      <div><label>Wholesale Price</label><input name="wholesale_price" type="number" min="0" step="0.01" /></div>
+                      <div><label>Minimum Stock</label><input name="min_stock" type="number" min="0" step="0.001" value="5" /></div>
+                      <div class="field-wide">
+                        <label>Product Photo (optional)</label>
+                        <div class="image-upload-row">
+                          <img id="productImagePreview" class="product-thumb-preview hidden" alt="Preview" />
+                          <input id="productImageInput" type="file" accept="image/*" />
+                          <button class="ghost-btn" type="button" id="removeProductImageBtn">Remove Photo</button>
+                          <input type="hidden" name="image" id="productImageHidden" />
+                        </div>
+                      </div>
+                    </div>
+                    <details class="advanced-box"><summary>Advanced / Packaging Settings (zyada tar products ko iski zaroorat nahi)</summary>
+                      <div class="form-grid">
+                        <div><label>Subcategory / Variant</label><input name="subcategory" placeholder="Optional" /></div>
+                        <div><label>Purchase Unit</label><input name="purchase_unit" value="kg" /></div>
+                        <div><label>Selling Unit</label><input name="sale_unit" value="kg" /></div>
+                        <div><label>Stock Unit</label><input name="stock_unit" value="kg" /></div>
+                        <div><label>Base Unit</label><input name="base_unit" value="kg" /></div>
+                        <div><label>1 Unit = Base Units</label><input name="unit_factor" type="number" value="1" min="0.001" step="0.001" /></div>
+                        <div><label>Expiry</label><input name="expiry_date" type="date" /></div>
+                        <div><label>Batch</label><input name="batch_no" /></div>
+                      </div>
+                    </details>
+                    <div class="article-builder">
+                      <div class="section-head"><div><span class="eyebrow">PACKAGING</span><h4>Articles / Pack Sizes</h4><p class="muted-copy">Example: 50 KG Bag, 10 KG Bag and Loose are separate articles. "Base units" = ye article kitne [Base Unit] ke barabar hai.</p></div><button class="ghost-btn" id="addArticleBtn" type="button">+ Add Article</button></div>
+                      <div id="articleBuilderList" class="article-builder-list"></div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="ghost-btn" type="button" id="cancelProductModalBtn">Cancel</button>
+                      <button class="primary-btn" type="submit">Save Product</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Product</th><th>Category</th><th>Articles</th><th>Retail</th><th>Wholesale</th><th>Base Stock</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="productsTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="stockSection" class="content-section">
+            <div class="panel stock-hero">
+              <div class="section-head"><div><span class="eyebrow">INVENTORY CONTROL</span><h3>Stock & Opening Inventory</h3><p class="muted-copy">Use single entry for normal receiving, or bulk import 5,000+ opening-stock rows from Excel/CSV.</p></div><div class="section-actions"><button class="ghost-btn" id="downloadStockTemplateBtn" type="button">Download Stock Template</button><button class="ghost-btn" id="exportStockPdfBtn" type="button">Export PDF</button><button class="ghost-btn" id="exportStockExcelBtn" type="button">Export Excel</button><button class="primary-btn" id="importStockBtn" type="button">Bulk Opening Stock</button><input id="importStockInput" type="file" accept=".csv,text/csv" hidden /></div></div>
+              <form id="stockForm" class="data-form">
+                <div class="form-grid">
+                  <div class="field-wide"><label>Scan barcode (product/article khud select ho jayega)</label><input id="stockBarcode" type="text" placeholder="Scan barcode / press Enter..." /></div>
+                  <div><label>Product</label><select id="stockProductSelect" name="product_id" required></select></div>
+                  <div><label>Article / Package</label><select id="stockArticleSelect" name="article_id"><option value="">Default article</option></select></div>
+                  <div><label>Quantity</label><input type="number" name="quantity" value="1" min="0.001" step="0.001" required /></div>
+                  <div><label>Unit</label><select name="unit"><option>pcs</option><option>kg</option><option>bag</option><option>ctn</option><option>lari</option><option>box</option></select></div>
+                  <div><label>Conversion factor</label><input type="number" name="conversion_factor" value="1" min="0.001" step="0.001" required /></div>
+                  <div><label>Cost per base unit</label><input type="number" name="unit_cost" value="0" min="0" step="0.01" /></div>
+                  <div><label>Expiry date</label><input type="date" name="expiry_date" /></div>
+                  <div><label>Date</label><input type="date" name="entry_date" /></div>
+                  <div><label>Supplier</label><select id="stockSupplierSelect" name="supplier_id"></select></div>
+                  <div><label>Reference</label><input name="reference" placeholder="Invoice or note" /></div>
+                  <div><label>Cash Paid</label><input type="number" name="cash_paid" value="0" min="0" step="0.01" /></div>
+                  <div><label>Bank / Account Paid</label><input type="number" name="bank_paid" value="0" min="0" step="0.01" /></div>
+                  <div class="field-wide"><span class="muted-copy">Supplier balance remains due automatically after cash and bank payments are subtracted.</span></div>
+                  <label class="check-field"><input type="checkbox" name="update_rate" /> Update purchase rate</label>
+                </div>
+                <div id="stockCalculation" class="stock-calculation">Select a product to see the stock calculation.</div>
+                <button class="success-btn" type="submit">Add Stock</button>
+              </form>
+              <div class="panel stock-adjustment-panel">
+                <h4>Record Stock Adjustment</h4>
+                <p class="muted-copy">Use this for verified stock corrections; negative adjustments cannot reduce stock below zero.</p>
+                <form id="stockAdjustmentForm" class="data-form">
+                  <div class="form-grid">
+                    <div><label>Product</label><select id="adjustmentProductSelect" name="product_id" required></select></div>
+                    <div><label>Article / Package (optional)</label><select id="adjustmentArticleSelect" name="article_id"><option value="">Base unit</option></select></div>
+                    <div><label>Adjustment</label><select name="direction"><option value="in">Stock increase</option><option value="out">Stock decrease</option></select></div>
+                    <div><label>Quantity</label><input type="number" name="quantity" min="0.001" step="0.001" required /></div>
+                    <div class="field-wide"><label>Reason</label><input name="reason" required placeholder="Physical count correction, damage, etc." /></div>
+                  </div>
+                  <button class="ghost-btn" type="submit">Save Adjustment</button>
+                </form>
+              </div>
+                <div class="conversion-strip">
+                <div><span class="eyebrow">PACKAGING CONTROL</span><h4>Break / Repack</h4><small>Convert bags, boxes or cartons into another article without changing total base stock.</small></div>
+                <select id="conversionFrom"></select><input id="conversionQty" type="number" min="0.001" step="0.001" value="1" placeholder="Qty">
+                <span class="conversion-arrow">→</span><select id="conversionTo"></select><button class="ghost-btn" id="saveConversion" type="button">Convert Stock</button>
+              </div>
+              <div class="table-scroll"><table><thead><tr><th>Date</th><th>Supplier</th><th>Product / Article</th><th>Qty</th><th>Base Qty</th><th>Cost / Base</th><th>Total Cost</th><th>Cash</th><th>Bank</th><th>Due</th><th>Expiry</th><th>Rate mode</th><th>Actions</th></tr></thead><tbody id="stockTableBody"></tbody></table></div>
+            </div>
+          </section>
+
+          <section id="purchasesSection" class="content-section">
+            <div class="panel">
+              <h3>Purchases</h3>
+              <form id="purchaseForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Supplier</label><select id="purchaseSupplierSelect"></select></div>
+                  <div><label>Cash Paid</label><input type="number" name="cash_paid" value="0" min="0" step="0.01" /></div>
+                  <div><label>Bank / Account Paid</label><input type="number" name="bank_paid" value="0" min="0" step="0.01" /></div>
+                  <div class="field-wide"><span class="muted-copy">The unpaid difference is automatically added to this supplier's payable. Cash and bank payments can be combined.</span></div>
+                </div>
+                <div class="pos-tools">
+                  <input id="purchaseProductSearch" type="search" placeholder="Find product..." />
+                  <select id="purchaseProductSelect"></select>
+                  <select id="purchaseArticleSelect"><option value="">Default article</option></select>
+                  <input type="number" id="purchaseQty" value="1" min="1" />
+                  <input type="number" id="purchaseUnitCost" value="0" step="0.01" />
+                  <input type="number" id="purchaseConversionFactor" value="1" min="0.001" step="0.001" title="Base units contained in one selected package" />
+                  <button class="primary-btn" id="addPurchaseItemBtn" type="button">Add</button>
+                </div>
+                <table>
+                  <thead><tr><th>Product</th><th>Qty</th><th>Pack factor</th><th>Unit Cost</th><th>Total</th><th>Action</th></tr></thead>
+                  <tbody id="purchaseItemsBody"></tbody>
+                </table>
+                <button class="success-btn" type="submit">Save Purchase</button>
+              </form>
+              <div class="section-head" style="margin-top:22px"><div><span class="eyebrow">PURCHASE HISTORY</span><h4>Saved Purchases</h4></div><button class="ghost-btn" id="backupBtn" type="button">Backup Database</button> <button class="ghost-btn" id="restoreBtn" type="button">Restore Backup</button><input id="restoreFileInput" type="file" accept=".db,application/octet-stream" hidden /></div>
+              <div class="table-scroll"><table><thead><tr><th>Invoice</th><th>Date</th><th>Supplier</th><th>Total</th><th>Paid</th><th>Balance</th><th>Action</th></tr></thead><tbody id="purchasesTableBody"></tbody></table></div>
+            </div>
+          </section>
+
+          <section id="customersSection" class="content-section">
+            <div class="panel">
+              <div class="section-head"><h3>Customers & Khata</h3><input id="customerSearch" class="table-search" type="search" placeholder="Search customer..." /></div>
+              <form id="customerForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Name</label><input name="name" required /></div>
+                  <div><label>Phone</label><input name="phone" /></div>
+                  <div><label>Address</label><input name="address" /></div>
+                  <div><label>Type</label><select name="type"><option>Retail</option><option>Wholesale</option></select></div>
+                  <div><label>Credit Limit</label><input type="number" name="credit_limit" value="0" /></div>
+                  <div><label>Opening Balance</label><input type="number" name="opening_balance" value="0" /></div>
+                </div>
+                <button class="primary-btn" type="submit">Save Customer</button>
+              </form>
+              <table>
+                <thead><tr><th>Name</th><th>Phone</th><th>Type</th><th>Balance</th><th>Actions</th></tr></thead>
+                <tbody id="customersTableBody"></tbody>
+              </table>
+              <div id="customerProfile" class="invoice-detail hidden"></div>
+            </div>
+          </section>
+
+          <section id="suppliersSection" class="content-section">
+            <div class="panel">
+              <div class="section-head"><h3>Suppliers & Khata</h3><input id="supplierSearch" class="table-search" type="search" placeholder="Search supplier..." /></div>
+              <form id="supplierForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Name</label><input name="name" required /></div>
+                  <div><label>Phone</label><input name="phone" /></div>
+                  <div><label>Address</label><input name="address" /></div>
+                  <div><label>Opening Balance</label><input type="number" name="opening_balance" value="0" /></div>
+                </div>
+                <button class="primary-btn" type="submit">Save Supplier</button>
+              </form>
+              <table>
+                <thead><tr><th>Name</th><th>Phone</th><th>Payable</th><th>Actions</th></tr></thead>
+                <tbody id="suppliersTableBody"></tbody>
+              </table>
+              <div id="supplierProfile" class="invoice-detail hidden"></div>
+            </div>
+          </section>
+
+          <section id="partnersSection" class="content-section">
+            <div class="panel">
+              <h3>Partners</h3>
+              <form id="partnerForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Name</label><input name="name" required /></div>
+                  <div><label>Initial Capital</label><input type="number" name="capital" value="0" min="0" step="0.01" /></div>
+                  <div><label>Ownership %</label><input type="number" name="ownership_pct" value="12.5" min="0" max="100" step="0.01" /></div>
+                  <div><label>Capital Source</label><select name="payment_method"><option>Cash</option><option>Bank</option></select></div>
+                </div>
+                <p class="muted-copy">Ownership shares for your four partners: 12.5%, 12.5%, 37.5% and 37.5% (combined total must be 100%). Initial capital is recorded as cash or bank received.</p>
+                <button class="primary-btn" type="submit">Save Partner</button>
+              </form>
+              <div class="partner-tools">
+                <button class="ghost-btn" id="partnerDistributionBtn" type="button">Distribute Profit</button>
+                <button class="ghost-btn" id="partnerRepaymentBtn" type="button">Repay Advance</button>
+              </div>
+              <div class="panel">
+                <h4>Record Partner Activity</h4>
+                <form id="partnerActivityForm" class="data-form">
+                  <div class="form-grid">
+                    <div><label>Partner</label><select name="partner_id" id="partnerActivitySelect" required></select></div>
+                    <div><label>Activity</label><select name="type"><option value="capital_contribution">Capital added to business</option><option value="withdrawal">Partner took money out</option><option value="advance">Advance given to partner</option><option value="advance_repayment">Partner returned advance</option></select></div>
+                    <div><label>Amount</label><input type="number" name="amount" min="0.01" step="0.01" required /></div>
+                    <div><label>Paid / Received through</label><select name="payment_method"><option>Cash</option><option>Bank</option></select></div>
+                    <div><label>Date</label><input type="date" name="date" /></div>
+                    <div><label>Reason / Note</label><input name="reason" placeholder="e.g. personal withdrawal" /></div>
+                  </div>
+                  <button class="success-btn" type="submit">Save Partner Activity</button>
+                </form>
+              </div>
+              <div id="partnerSummary" class="stats-grid small"></div>
+              <table>
+                <thead><tr><th>Name</th><th>Capital</th><th>Share %</th><th>Profit Share</th><th>Advance</th><th>Withdrawals</th><th>Balance</th><th>Actions</th></tr></thead>
+                <tbody id="partnersTableBody"></tbody>
+              </table>
+              <div class="panel">
+                <h4 id="partnerActivityTitle">Select a partner to view their activity</h4>
+                <div class="table-scroll"><table><thead><tr><th>Date</th><th>Activity</th><th>Reason / Notes</th><th>Source</th><th>Amount</th><th>Partner Balance</th><th>Advance Due</th></tr></thead><tbody id="partnerActivityBody"><tr><td colspan="7">Choose a partner above.</td></tr></tbody></table></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="expensesSection" class="content-section">
+            <div class="panel">
+              <h3>Expenses</h3>
+              <form id="expenseForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Name</label><input name="name" required /></div>
+                  <div><label>Category</label><select name="category"><option>Rent</option><option>Electricity</option><option>Internet</option><option>Salary</option><option>Transport</option><option>Maintenance</option><option>Marketing</option><option>Miscellaneous</option><option>Other</option></select></div>
+                  <div><label>Amount</label><input type="number" name="amount" value="0" /></div>
+                  <div><label>Date</label><input type="date" name="date" /></div>
+                  <div><label>Payment Method</label><select name="payment_method"><option>Cash</option><option>Bank</option><option>Online</option></select></div>
+                  <div><label>Description</label><input name="description" /></div>
+                </div>
+                <button class="primary-btn" type="submit">Save Expense</button>
+              </form>
+              <table>
+                <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody id="expensesTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="bankSection" class="content-section">
+            <div class="panel">
+              <h3>Cash in Bank</h3>
+              <div class="totals-box" id="bankTotals"></div>
+              <form id="bankTxnForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Account</label><select name="account_id" id="bankAccountSelect"></select></div>
+                  <div><label>Type</label><select name="type"><option value="deposit">Deposit (paise jama)</option><option value="withdraw">Withdraw (paise nikale)</option></select></div>
+                  <div><label>Amount</label><input type="number" name="amount" min="1" step="0.01" required /></div>
+                  <div><label>Date</label><input type="date" name="date" /></div>
+                  <div><label>Reference / Note</label><input name="notes" /></div>
+                </div>
+                <button class="primary-btn" type="submit">Save Transaction</button>
+              </form>
+              <details class="advanced-box">
+                <summary>Naya bank account add karo</summary>
+                <form id="bankAccountForm" class="data-form">
+                  <div class="form-grid">
+                    <div><label>Bank / Account Name</label><input name="name" required /></div>
+                    <div><label>Account No</label><input name="account_no" /></div>
+                    <div><label>Opening Balance</label><input type="number" name="opening_balance" value="0" /></div>
+                  </div>
+                  <button class="primary-btn" type="submit">Add Account</button>
+                </form>
+              </details>
+              <div class="table-scroll">
+                <table>
+                  <thead><tr><th>Date</th><th>Account</th><th>Detail</th><th>In</th><th>Out</th><th></th></tr></thead>
+                  <tbody id="bankTxnBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="hisabSection" class="content-section">
+            <div class="panel">
+              <h3>Hisab Kitab</h3>
+              <div class="pos-tools" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
+                <button class="primary-btn hisab-tab" data-rep="stock">Stock Report</button>
+                <button class="ghost-btn hisab-tab" data-rep="products">Product Report</button>
+                <button class="ghost-btn hisab-tab" data-rep="expenses">Expense Report</button>
+                <button class="ghost-btn hisab-tab" data-rep="partners">Partners</button>
+                <button class="ghost-btn hisab-tab" data-rep="dueCustomers">Customer Due</button>
+                <button class="ghost-btn hisab-tab" data-rep="dueSuppliers">Supplier Due</button>
+                <button class="ghost-btn hisab-tab" data-rep="purchases">Purchases</button>
+                <button class="ghost-btn hisab-tab" data-rep="cash">Cashbook</button>
+                <button class="ghost-btn hisab-tab" data-rep="bank">Bank</button>
+                <button class="ghost-btn hisab-tab" data-rep="supplierItems">Supplier Goods</button>
+                <span style="flex:1"></span>
+                <div><label>Supplier filter</label><select id="hisabSupplierFilter"><option value="">All suppliers</option></select></div>
+                <div><label>Se</label><input type="date" id="hisabFrom" /></div>
+                <div><label>Tak</label><input type="date" id="hisabTo" /></div>
+                <button class="ghost-btn" id="hisabRefresh">Dikhao</button>
+              </div>
+              <div id="hisabSummary" class="totals-box"></div>
+              <div class="table-scroll"><table><thead id="hisabHead"></thead><tbody id="hisabBody"></tbody></table></div>
+            </div>
+          </section>
+
+          <section id="reportsSection" class="content-section">
+            <div class="panel">
+              <div class="section-head"><div><span class="eyebrow">BUSINESS INTELLIGENCE</span><h3>Bill History</h3></div><div class="report-tools"><button class="ghost-btn" id="comprehensiveReportBtn" type="button">Full Report</button><button class="primary-btn" id="savePdfReportBtn" type="button">Save as PDF</button><button class="ghost-btn" id="exportReportExcelBtn" type="button">Export Excel</button><input id="reportSearch" type="search" placeholder="Invoice, customer, phone..." /><label for="reportRange">Date range</label><select id="reportRange"><option value="all">All dates</option><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="week">This week</option><option value="month">This month</option><option value="custom">Custom date</option></select><input id="reportDate" type="date" title="Choose a date" /><button class="ghost-btn" id="clearReportDate">Reset</button></div></div>
+              <div class="report-tools daily-report-tools">
+                <label for="dailyReportDate">Complete daily report date</label>
+                <input id="dailyReportDate" type="date" />
+                <button class="success-btn" id="dailyReportBtn" type="button">Daily Report / Print PDF</button>
+              </div>
+              <div id="reportSummary" class="stats-grid small"></div>
+              <table>
+                <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Type</th><th>Total</th><th>Profit</th><th>Actions</th></tr></thead>
+                <tbody id="salesReportsBody"></tbody>
+              </table>
+              <div id="invoiceDetail" class="invoice-detail hidden"></div>
+            </div>
+          </section>
+
+          <section id="accountsSection" class="content-section">
+            <div class="panel accounts-panel"><div class="section-head"><div><span class="eyebrow">CASHBOOK</span><h3>Daily Accounts</h3></div><input id="accountsDate" type="date" /></div><div id="accountsSummary" class="stats-grid"></div><div id="accountsBreakdown" class="accounts-breakdown"></div></div>
+          </section>
+
+          <section id="usersSection" class="content-section">
+            <div class="panel"><div class="section-head"><div><span class="eyebrow">ACCESS CONTROL</span><h3>Users & Passwords</h3></div></div><form id="userForm" class="data-form"><div class="form-grid"><div><label>Name</label><input name="name" required /></div><div><label>Username</label><input name="username" required /></div><div><label>Password</label><input name="password" type="password" required /></div><div><label>Role</label><select name="role"><option value="cashier">Cashier</option><option value="manager">Manager</option><option value="admin">Admin</option><option value="partner">Partner</option></select><select name="partner_id" id="userPartnerSelect"><option value="">Partner account (optional)</option></select></div></div><button class="primary-btn" type="submit">Create User</button></form><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Change Password</th><th>Action</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+          </section>
+
+          <section id="settingsSection" class="content-section">
+            <div class="panel">
+              <div class="section-head"><div><span class="eyebrow">BUSINESS SETUP</span><h3>Shop & Receipt Settings</h3></div></div>
+              <form id="settingsForm" class="data-form">
+                <div class="form-grid">
+                  <div><label>Shop Name (bill par naam)</label><input name="shop_name" required /></div>
+                  <div><label>Phone</label><input name="shop_phone" /></div>
+                  <div><label>Address</label><input name="shop_address" /></div>
+                  <div><label>Receipt footer note</label><input name="receipt_footer" placeholder="Thank you for shopping with us!" /></div>
+                  <div><label>Thermal Printer</label><select name="printer_name" id="printerSelect"><option value="">System default printer</option></select><span class="muted-copy" id="printerHint"></span></div>
+                  <div style="grid-column:1/-1"><label>WhatsApp reminder message (placeholders: {name}, {balance})</label><input name="whatsapp_template" /></div>
+                </div>
+                <button class="primary-btn" type="submit">Save Settings</button>
+                <button class="ghost-btn" type="button" id="testPrintBtn">Test Print</button>
+              </form>
+            </div>
+            <div class="panel">
+              <div class="section-head"><div><span class="eyebrow">ACCOUNTABILITY</span><h3>Audit Log</h3><p class="muted-copy">Kisne kya kiya aur kab \u2014 sab se recent 200 actions.</p></div><button class="ghost-btn" id="refreshAuditBtn" type="button">Refresh</button></div>
+              <table>
+                <thead><tr><th>Date/Time</th><th>User</th><th>Action</th><th>Entity</th></tr></thead>
+                <tbody id="auditLogTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <div id="modalRoot"></div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
